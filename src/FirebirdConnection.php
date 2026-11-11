@@ -19,11 +19,12 @@ class FirebirdConnection extends DatabaseConnection
      */
     protected function getDefaultQueryGrammar()
     {
+        // # ALTERADO POR CODEX: Laravel12/13 exige a ligação no construtor da grammar.
         if ($this->getDialectVersion() == '1') {
-            return new FirebirdQueryGrammarDialect1;
+            return new FirebirdQueryGrammarDialect1($this);
         }
         
-        return new FirebirdQueryGrammarDialect3;
+        return new FirebirdQueryGrammarDialect3($this);
     }
 
     /**
@@ -57,7 +58,8 @@ class FirebirdConnection extends DatabaseConnection
      */
     protected function getDefaultSchemaGrammar()
     {
-        return $this->withTablePrefix(new FirebirdSchemaGrammar);
+        // # ALTERADO POR CODEX: a grammar atual obtém o prefixo através da ligação.
+        return new FirebirdSchemaGrammar($this);
     }
 
     /**

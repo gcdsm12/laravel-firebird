@@ -1,55 +1,49 @@
 name: Tests
-
-on:
-  [push, pull_request]
-
+on: [push, pull_request]
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
+  integration:
+    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        php: [8.1, 8.0, 7.4]
-        laravel: [8.*, 9.*]
-        stability: [prefer-lowest, prefer-stable]
-        firebird: [v4.0, v3.0, v2.5.9-sc]
         include:
-          - laravel: 8.*
-            testbench: ^6.19
-          - laravel: 9.*
-            testbench: ^7.0
-        exclude:
-          - laravel: 9.*
-            php: 7.4
-
-    name: PHP ${{ matrix.php }}, Laravel ${{ matrix.laravel }}, Firebird ${{ matrix.firebird }}, ${{ matrix.stability }}
-
+          - laravel: '^12.0'
+            testbench: '^10.0'
+            phpunit: '^11.0'
+          - laravel: '^13.0'
+            testbench: '^11.0'
+            phpunit: '^12.0'
     services:
       firebird:
-        image: jacobalberty/firebird:${{ matrix.firebird }}
+        image: jacobalberty/firebird:v2.5.9-sc
         env:
-          FIREBIRD_DATABASE: 'database.fdb'
-          ISC_PASSWORD: 'masterkey'
+          FIREBIRD_DATABASE: database.fdb
+          ISC_PASSWORD: masterkey
           EnableLegacyClientAuth: 'true'
-        ports:
-          - 3050:3050
-
+        ports: ['3050:3050']
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: '8.3'
           extensions: pdo_firebird
           tools: composer:v2
           coverage: none
-
-      - name: Install dependencies
+      - run: composer require --dev "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-update
+      - run: composer update --prefer-dist --no-interaction
+      - name: Wait for disposable Firebird
         run: |
-          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
-
-      - name: Execute tests
-        run: vendor/bin/phpunit
+          for attempt in {1..30}; do
+            if nc -z 127.0.0.1 3050; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - run: composer test:integration
+        env:
+          FIREBIRD_TEST_DISPOSABLE: '1'
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3050'
+          DB_DATABASE: /firebird/data/database.fdb
+          DB_USERNAME: SYSDBA
+          DB_PASSWORD: masterkey
+          DB_CHARSET: UTF8

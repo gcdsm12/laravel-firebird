@@ -14,3 +14,6 @@ vendor
 node_modules
 .php-cs-fixer.cache
 phpunit.xml
+# Testes de compatibilidade locais e cache PHPUnit
+/tests/
+/.phpunit.cache/

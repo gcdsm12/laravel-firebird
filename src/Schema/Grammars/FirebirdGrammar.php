@@ -27,9 +27,12 @@ class FirebirdGrammar extends Grammar
      *
      * @return string
      */
-    public function compileTableExists()
+    // # ALTERADO POR CODEX: assinatura imposta pela grammar do Laravel12/13.
+    public function compileTableExists($schema = null, $table = null)
     {
-        return 'select rdb$relation_name from rdb$relations where rdb$relation_name = ?';
+        // # ALTERADO POR CODEX: hasTable atual espera um escalar e já não fornece bindings.
+        $table = str_replace("'", "''", (string) $table);
+        return "select count(*) from rdb\$relations where trim(rdb\$relation_name) = '$table'";
     }
 
     /**
@@ -40,6 +43,8 @@ class FirebirdGrammar extends Grammar
      */
     public function compileColumnListing($table)
     {
+        // # ALTERADO POR CODEX: preserva a consulta legada com literal SQL escapado.
+        $table = str_replace("'", "''", (string) $table);
         return "select trim(rdb\$field_name) as \"column_name\" from rdb\$relation_fields where rdb\$relation_name = '$table'";
     }
 

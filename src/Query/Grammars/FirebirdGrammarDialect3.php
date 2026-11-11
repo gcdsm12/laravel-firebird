@@ -62,7 +62,8 @@ class FirebirdGrammarDialect3 extends Grammar
 
         $select = 'select ';
 
-        if ($query->limit) {
+        // # ALTERADO POR CODEX: limit(0) deve devolver zero linhas, sem perder o limite.
+        if ($query->limit !== null) {
             $select .= $this->compileLimit($query, $query->limit).' ';
         }
 
@@ -138,6 +139,18 @@ class FirebirdGrammarDialect3 extends Grammar
         return 'EXTRACT('.$type.' FROM '.$this->wrap($where['column']).') '.$where['operator'].' '.$value;
     }
 
+    // # ALTERADO POR CODEX: hooks impostos pelo Laravel; EXTRACT(DATE/TIME) não é válido em Firebird2.5.
+    protected function whereDate(Builder $query, $where)
+    {
+        return 'cast('.$this->wrap($where['column']).' as date) '.$where['operator'].' '.$this->parameter($where['value']);
+    }
+
+    protected function whereTime(Builder $query, $where)
+    {
+        // # ALTERADO POR CODEX: mantém comparação de hora válida em Firebird2.5.
+        return 'cast('.$this->wrap($where['column']).' as time) '.$where['operator'].' '.$this->parameter($where['value']);
+    }
+
     /**
      * Compile SQL statement for a stored procedure.
      *
@@ -146,7 +159,8 @@ class FirebirdGrammarDialect3 extends Grammar
      * @param  array  $values
      * @return string
      */
-    public function compileProcedure(Builder $query, $procedure, array $values = null)
+    // # ALTERADO POR CODEX: nulabilidade explícita para PHP8.4+, mantendo a assinatura pública legada.
+    public function compileProcedure(Builder $query, $procedure, ?array $values = null)
     {
         $procedure = $this->wrap($procedure);
 

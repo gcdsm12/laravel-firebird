@@ -1,23 +1,29 @@
 {
-    "name": "onezerotrash/laravel-firebird",
-    "description": "Firebird database driver for the Laravel Framework",
+    "name": "gabrielchagas/laravel-firebird",
+    "description": "Firebird PDO driver for Laravel 12 and 13, preserving Firebird 2.5 and dialects 1/3",
     "license": "MIT",
     "require": {
-    "php": "^7.4|^8.0",
-    "illuminate/support": "^8.65|^9.33|^10.0|^11.0",
-    "illuminate/container": "^8.65|^9.33|^10.0|^11.0",
-    "illuminate/database": "^8.65|^9.33|^10.0|^11.0",
-    "illuminate/events": "^8.65|^9.33|^10.0|^11.0"
-  },
-  "require-dev": {
-    "mockery/mockery": "^1.4",
-    "phpunit/phpunit": "^9.6.11|^10.0",
-    "orchestra/testbench": "^6.19|^7.0|^8.0|^9.0",
-    "fakerphp/faker": "^1.15"
-  },
+        "php": "^8.2",
+        "illuminate/support": "^12.0|^13.0",
+        "illuminate/container": "^12.0|^13.0",
+        "illuminate/database": "^12.0|^13.0",
+        "illuminate/events": "^12.0|^13.0",
+        "ext-pdo": "*",
+        "ext-pdo_firebird": "*"
+    },
+    "require-dev": {
+        "mockery/mockery": "^1.4",
+        "phpunit/phpunit": "^11.0|^12.0",
+        "orchestra/testbench": "^10.0|^11.0",
+        "fakerphp/faker": "^1.15"
+    },
     "archive": {
         "exclude": [
-            "/tests"
+            "/tests",
+            "/vendor",
+            "/.git",
+            "/composer.lock",
+            "/.phpunit.cache"
         ]
     },
     "autoload": {
@@ -36,5 +42,13 @@
                 "onezerotrash\\Firebird\\FirebirdServiceProvider"
             ]
         }
+    },
+    "scripts": {
+        "test": "phpunit --testsuite Unit",
+        "test:integration": "phpunit --testsuite Integration"
+    },
+    "support": {
+        "source": "https://github.com/gcdsm12/laravel-firebird",
+        "issues": "https://github.com/gcdsm12/laravel-firebird/issues"
     }
 }
